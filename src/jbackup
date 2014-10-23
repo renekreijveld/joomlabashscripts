@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# jbackup -- Create a full backup (including database) of a Joomla website to .tgz file.
+# Supports Joomla 1.0 - 3.3
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
+#
+
+# General variables
+version=3.1
+
+# Determine path of script
+mypath=$( cd $(dirname $0) ; pwd -P )
+
+# display usage information
+usage() {
+	echo "jbackup version ${version}, written by Rene Kreijveld."
+	echo " "
+	echo "Usage: jbackup [-z] [-h]"
+	echo " "
+	echo "Default action is .tgz backup."
+	echo "-z Zip. Backup to a zipfile instead of a tgzfile."
+	echo "-h Help. Display this info."
+	echo " "
+	echo "Run jbackup at the root of your website, where the configuration.php is."
+	echo " "
+	exit 0
+}
+
+# Default no zipfile
+zip="no"
+
+# process the arguments
+while getopts zth opt; do
+	case "${opt}" in
+		z) zip="yes";;
+		h) usage;;
+		\?) usage;;
+	esac
+done
+
+# Include general functions
+. ${mypath}/jfunctions
+
+echo -e "\njbackup verion ${version}, written by Rene Kreijveld.\n"
+echo "This is a Joomla! ${versr}.${versd} site. Starting backup..."
+
+# Dump the database to a .sql file
+echo "Creating database dump..."
+if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql; then
+	echo "${database}.sql created."
+else
+	echo "Error creating database dump."
+	exit 1
+fi
+
+if [ -e .htaccess ]; then
+	htaccess=".htaccess"
+else
+	htaccess=""
+fi
+
+# Create the backupfile
+if echo "${zip}" | grep -q "no" ; then
+	tar czf ${sitename}.tgz ${htaccess} *
+fi
+
+if echo "${zip}" | grep -q "yes" ; then
+	zip -q -r ${sitename}.zip ${htaccess} *
+fi
+
+# Cleanup datebase dump
+rm ${database}.sql
+
+# End
+if echo "${zip}" | grep -q "no" ; then
+	echo "Your backup is ready in ${sitename}.tgz:"
+	ls -l ${sitename}.tgz
+fi
+
+if echo "${zip}" | grep -q "yes" ; then
+	echo "Your backup is ready in ${sitename}.zip:"
+	ls -l ${sitename}.zip
+fi

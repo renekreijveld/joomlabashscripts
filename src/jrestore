@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# jrestore - Restore a local site backup
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+
+# General variables
+storepath=/backups/sites
+mypath=$( cd $(dirname ${0}) ; pwd -P )
+
+# Include general functions
+. ${mypath}/jfunctions
+
+# Version
+version=3.1
+
+echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+echo "This is a Joomla! ${versr}.${versd} site. Starting backup restore."
+
+echo "The following backups were found (most recent backup is listed first):"
+ls -1t ${storepath}/${sitename}.*
+
+echo "Which backup must be restored, (copy/paste filename), or press Ctrl-C to abort?"
+read -p "Filename: " restorefile
+
+echo "Unpacking backup ${restorefile}"
+tar xzf ${restorefile}
+echo "Restoring database backup ${database}.sql"
+
+if mysql --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} < ${database}.sql
+then
+        echo "Database backup ${database}.sql restored."
+        rm ${database}.sql
+        echo "Restore backup website ${sitenameclean} completed."
+        exit 0
+else
+        echo "Error restoring Database backup ${database}.sql!"
+        exit 1
+fi

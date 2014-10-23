@@ -1,0 +1,89 @@
+#!/bin/sh
+
+# jlistjoomlas -- Find Joomla instances on your (DirectAdmin based) server.
+# Supports Joomla versions 1.0 - 3.3
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+
+# Define variables
+version=3.2
+startdir="/home"
+mypath=$( cd $(dirname ${0}) ; pwd -P )
+myname=`basename ${0}`
+
+# display usage information
+usage() {
+	echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+	echo -e "Usage: ${myname} [-s] [-c] [-h]\n"
+	echo "-s Short. Only display path and Joomla version."
+	echo "-c CSV. Output values in CSV format."
+	echo -e "-h Help. Display this info.\n"
+	echo -e "Example usage:\n"
+	echo "${myname}"
+	echo -e "Outputs detailed information about Joomla websites found on this server.\n"
+	echo "${myname} -c > joomlasites.csv"
+	echo -e "Outputs detailed information about Joomla websites in CSV format and writes result to the file joomlasites.csv.\n"
+	exit 0
+}
+
+# process the arguments
+short="no"
+csv="no"
+while getopts sch opt
+do
+	case "${opt}" in
+		s) short="yes";;
+		c) csv="yes";;
+		h) usage;;
+		\?) usage;;		
+	esac
+done
+
+if [ "${csv}" == "no" ]; then
+	if [ "${short}" == "no" ]; then
+		echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+	fi
+fi
+
+if [ "${csv}" == "yes" ]; then
+	echo "\"map\",\"name\",\"version\",\"database\",\"dbuser\",\"password\",\"host\",\"prefix\""
+fi
+
+for dir in `find ${startdir} -maxdepth 4 -type d -name "public_html"`
+do
+	if [ -f ${dir}/configuration.php ]; then
+		# possible joomla found
+		cd ${dir}		
+		if [ "${csv}" == "no" ]; then
+			if [ "${short}" == "no" ]; then
+				echo Possible Joomla found in ${dir}
+			fi
+		fi
+
+		# Get Joomla information
+		. ${mypath}/jfunctions
+
+		# Output information
+		if [ "${csv}" == "yes" ]; then
+			echo "\"${dir}\",\"${sitename}\",\"${versr}.${versd} ${verss}\",\"${database}\",\"${dbuser}\",\"${password}\",\"${host}\",\"${prefix}\""
+		else
+			if [ "${short}" == "no" ]; then
+				echo "Joomla information found:"
+				echo "Sitename    : ${sitename}"
+				echo "Version     : ${versr}.${versd} ${verss}"
+				echo "DB Name     : ${database}"
+				echo "DB User     : ${dbuser}"
+				echo "DB Password : ${password}"
+				echo "DB Host     : ${host}"
+				echo -e "DB Prefix   : ${prefix}\n"
+			else
+				echo "Joomla found in ${dir}"
+				echo -e "Version: ${versr}.${versd} ${verss}\n"
+			fi
+		fi
+	fi
+done

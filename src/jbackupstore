@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# jbackupstore -- Create a full backup of a Joomla website to tar gzip file and store in backup directory
+#
+# Copyright 2012 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
+
+# Define general variables
+version=3.0
+now=$(date +"%Y%m%d-%H%M%S")
+storepath=/backups/sites
+logfile=/usr/local/sbin/sitesbackup.log
+
+# Determine path of script
+mypath=$( cd $(dirname $0) ; pwd -P )
+
+# Include general functions
+. ${mypath}/jfunctions
+
+echo "`date` Start backup ${sitename}" >> ${logfile}
+
+# dump the database to a .sql file
+mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql
+
+# backup site
+tar --exclude 'cache/*' -czf ${storepath}/${sitename}.${now}.tgz .htaccess *
+
+# cleanup datebase dump
+rm ${database}.sql
+
+echo "`date` End backup ${sitename}" >> ${logfile}

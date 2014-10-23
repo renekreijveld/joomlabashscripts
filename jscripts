@@ -1,0 +1,163 @@
+#!/bin/sh
+
+version=4.0
+distrosite=http://www.rkrweb.nl/jscripts
+localdir=/usr/local/sbin
+
+# Build a new distribution set
+buildDistro() {
+	# Clean versions.txt
+	if [ -e versions.txt ]; then
+		rm versions.txt
+	fi
+
+	# Process all files
+	while read line
+	do
+		jscript=`echo ${line} | cut -d "=" -f 1`
+		version=`grep -m1 'version=' src/${jscript} | cut -d "=" -f 2`
+		echo "Processing ${jscript} version ${version}"
+		cd src
+		tar czf ../distro/${jscript}.${version}.tgz ${jscript}
+		echo "${jscript}:${version}" >> ../versions.txt
+		cd ..
+	done < filelist
+	jscript=jscripts
+	version=`grep -m1 'version=' ${jscript} | cut -d "=" -f 2`
+	echo "Processing ${jscript} version ${version}"
+	tar czf distro/${jscript}.${version}.tgz ${jscript}
+	cp distro/${jscript}.${version}.tgz distro/${jscript}.tgz 
+	echo "${jscript}:${version}" >> versions.txt
+	mv versions.txt distro
+}
+
+# Update all scripts
+updateScripts() {
+	cd ${localdir}
+	wget -v ${distrosite}/versions.txt -O versions.txt
+	while read line
+	do
+		jscript=`echo ${line} | cut -d ":" -f 1`
+		if [ -e ${jscript} ]; then
+			jscriptversion=`grep -m1 'version=' ${jscript} | cut -d "=" -f 2`
+		else
+			jscriptversion=unknown
+		fi
+		distroversion=`echo ${line} | cut -d ":" -f 2`
+		if [ ! "${jscriptversion}" == "${distroversion}" ]
+			then
+			wget -v ${distrosite}/${jscript}.${distroversion}.tgz -O ${jscript}.${distroversion}.tgz
+			tar xzf ${jscript}.${distroversion}.tgz
+			chmod +x ${jscript}
+			chown root:root ${jscript}
+			echo "Updated ${jscript} to version ${distroversion}"
+		fi
+	done < versions.txt
+}
+
+# Update all scripts
+refreshScripts() {
+	cd ${localdir}
+	wget -v ${distrosite}/versions.txt -O versions.txt
+	while read line
+	do
+		jscript=`echo ${line} | cut -d ":" -f 1`
+		distroversion=`echo ${line} | cut -d ":" -f 2`
+		wget -v ${distrosite}/${jscript}.${distroversion}.tgz -O ${jscript}.${distroversion}.tgz
+		tar xzf ${jscript}.${distroversion}.tgz
+		chmod +x ${jscript}
+		chown root:root ${jscript}
+		echo "Refreshed script ${jscript} to version ${distroversion}"
+	done < versions.txt
+	jscript="jscripts"
+	distroversion=`grep -m1 'jscripts:' versions.txt| cut -d ":" -f 2`
+	wget -v ${distrosite}/${jscript}.${distroversion}.tgz -O ${jscript}.${distroversion}.tgz
+	tar xzf ${jscript}.${distroversion}.tgz
+	chmod +x ${jscript}
+	chown root:root ${jscript}
+	echo "Refreshed script ${jscript} to version ${distroversion}"
+}
+
+# Update jscripts script
+updateJscripts() {
+	cd ${localdir}
+	wget -v ${distrosite}/versions.txt -O versions.txt
+	jscript="jscripts"
+	distroversion=`grep -m1 'jscripts:' versions.txt| cut -d ":" -f 2`
+	jscriptversion=`grep -m1 'version=' ${jscript} | cut -d "=" -f 2`
+	if [ ! "${jscriptversion}" == "${distroversion}" ]; then
+		wget -v ${distrosite}/${jscript}.${distroversion}.tgz -O ${jscript}.${distroversion}.tgz
+		tar xzf ${jscript}.${distroversion}.tgz
+		chmod +x ${jscript}
+		chown root:root ${jscript}
+		echo "Updated ${jscript} to version ${distroversion}"
+	fi
+}
+
+# List versions
+versionList() {
+	cd ${localdir}
+	wget -v ${distrosite}/versions.txt -O versions.txt
+	while read line
+	do
+		jscript=`echo ${line} | cut -d ":" -f 1`
+		if [ -e ${jscript} ]; then
+			jscriptversion=`grep -m1 'version=' ${jscript} | cut -d "=" -f 2`
+		else
+			jscriptversion=unknown
+		fi
+		distroversion=`echo ${line} | cut -d ":" -f 2`
+		echo "Latest version of ${jscript}: ${distroversion}"
+		echo "Installed version of ${jscript}: ${jscriptversion}"
+		echo " "
+	done < versions.txt
+}
+
+# List versions
+cleanFiles() {
+	cd ${localdir}
+	wget -v ${distrosite}/versions.txt -O versions.txt
+	while read line
+	do
+		jscript=`echo ${line} | cut -d ":" -f 1`
+		rm -f ${jscript}*tgz
+	done < versions.txt
+}
+
+# Show help
+showHelp() {
+	echo "+--------------------------------------------------------+"
+	echo "| jscripts version ${version}, written by Rene Kreijveld        |"
+	echo "+--------------------------------------------------------+"
+	echo "| Options:                                               |"
+	echo "| $0 versions: list all versions                 |"
+	echo "| $0 update: update scripts                      |"
+	echo "| $0 refresh: refresh scripts                    |"
+	echo "| $0 update_jscripts: update jscripts script     |"
+	echo "| $0 clean: remove .tgz files                    |"
+	echo "| $0 help: show this help                        |"
+	echo "+--------------------------------------------------------+"
+}
+
+echo "jscripts version ${version}, written by Rene Kreijveld"
+
+# Process option
+case "$1" in
+	distro) buildDistro;
+		;;
+	update) updateScripts;
+		;;
+	refresh) refreshScripts;
+		;;
+	update_jscripts) updateJscripts;
+		;;
+	versions) versionList;
+		;;
+	clean) cleanFiles;
+		;;
+	help) showHelp;
+		;;
+	*) showHelp;
+		exit 0;
+		;;
+esac

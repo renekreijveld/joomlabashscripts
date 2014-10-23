@@ -1,0 +1,14 @@
+dbbackup:3.0
+jbackup:3.1
+jbackupstore:3.0
+jdbdump:3.1
+jdbimp:3.1
+jdbrepair:3.2
+jdbsession:3.2
+jfunctions:3.1
+jinfo:3.1
+jlistjoomlas:3.2
+jnewfiles:3.2
+jrestore:3.1
+jsitesbackup:3.2
+jscripts:4.0

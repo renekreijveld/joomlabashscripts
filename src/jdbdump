@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# jdbdump -- Dump a Joomla database to sql file.
+#
+# This scripts supports Joomla versions 1.0 - 3.3
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+
+# General variables
+mypath=$( cd $(dirname ${0}) ; pwd -P )
+myname=`basename ${0}`
+
+# Include general functions
+. ${mypath}/jfunctions
+
+# Version
+version=3.1
+
+echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+echo "This is a Joomla! ${versr}.${versd} site. Starting database dump..."
+
+# Dump the database to a .sql file
+if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql; then
+	echo "${database}.sql created."
+	ls -l ${database}.sql
+	exit 0
+else
+	echo "Error creating database dump."
+	exit 1
+fi

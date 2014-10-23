@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# jdbimp -- Import a sql file into a Joomla database.
+# Supports Joomla versions 1.0 - 3.3
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+
+# General variables
+mypath=$( cd $(dirname ${0}) ; pwd -P )
+myname=`basename ${0}`
+
+# Include general functions
+. ${mypath}/jfunctions
+
+# Version
+version=3.1
+
+echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+echo "This is a Joomla! ${versr}.${versd} site. Starting database import..."
+
+# Check if database dump exists.
+if [ ! -e ${database}.sql ]; then
+	echo "Database dump ${database}.sql not found!"
+	exit 1
+fi
+
+# Import the database from a .sql file
+if mysql --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} < ${database}.sql; then
+	echo "${database}.sql imported."
+	exit 0
+else
+	echo "Error importing database dump."
+	exit 1
+fi

@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# dbbackup - Create a backup of all your MySQL databases
+#
+# Copyright 2011 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+
+version=3.0
+now=$(date +"%Y%m%d-%H%M%S")
+dbconf=/usr/local/directadmin/conf/mysql.conf
+dbuser=`grep 'user=' ${dbconf} | cut -d = -f 2`
+dbhost=localhost
+dbpass=`grep 'passwd=' ${dbconf} | cut -d = -f 2`
+backupdir=/backups/mysql
+
+# Find MySQL Socket
+if [ -S /var/lib/mysql/mysql.sock ]
+then
+        mysock=/var/lib/mysql/mysql.sock
+elif [ -S /var/run/mysqld/mysqld.sock ]
+then
+        mysock=/var/run/mysqld/mysqld.sock
+elif [ -S /tmp/mysql.sock ]
+then
+        mysock=/tmp/mysql.sock
+fi
+
+#mysock=/path/to/your/socket/file/here
+
+if [ -z mysock ]
+then
+	echo "No valid MySQL socket file found!"
+	echo "Either MySQL is not running or it is installed in a custom location."
+	echo "Manually add it's path in this script on line 29."
+	exit 1
+fi
+
+dbs=`mysql -u${dbuser} -h${dbhost} -p${dbpass} -S${mysock} -e"show databases"`
+
+for database in ${dbs}
+do
+case "${database}" in
+'database')
+        ;;
+'information_schema')
+        ;;
+'performance_schema')
+        ;;
+'da_roundcube')
+        ;;
+'mysql')
+        ;;
+*)
+        filename="${database}.${now}.gz"
+        mysqldump -u${dbuser} -h${dbhost} -p${dbpass} -S${mysock} ${database} | gzip --best > ${backupdir}/${filename}
+        ;;
+esac
+done
+
+# Cleanup old backups older than 4 days
+cd /dummy
+cd ${backupdir}
+find . -mtime +4 -exec rm {} \;

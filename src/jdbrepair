@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# jdbrepair -- Repair the database of a Joomla website.
+#
+# This scripts supports Joomla versions 1.0 - 3.3
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
+
+# General variables
+mypath=$( cd $(dirname ${0}) ; pwd -P )
+myname=`basename ${0}`
+startdir=/home
+
+# Version
+version=3.2
+
+# display usage information
+usage() {
+	echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+	echo -e "Usage: ${myname} [-a] [-h]\n"
+	echo "-a All. Repair databases for all Joomla websites found."
+	echo -e "-h Help. Display this info.\n"
+	echo -e "If used without the -a option, ${myname} should be run in the root of your Joomla website.\n"
+	exit 0
+}
+
+databaseRepair() {
+	# Get Joomla info
+	. ${mypath}/jfunctions
+	echo "Repairing database for ${sitename}:"
+	mysqlcheck --user=${dbuser} --password=${password} --repair ${database}
+}
+
+# process the arguments
+all="no"
+while getopts ah opt
+do
+	case "${opt}" in
+		a) all="yes";;
+		h) usage;;
+		\?) usage;;		
+	esac
+done
+
+echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+
+if [ "${all}" == "yes" ]; then
+	for dir in `find ${startdir} -maxdepth 4 -type d -name "public_html"`; do
+		if [ -f ${dir}/configuration.php ]; then
+			# possible joomla found
+			echo "Joomla website found at ${dir}"
+			cd ${dir}
+			databaseRepair;
+		fi
+	done
+else
+	databaseRepair;
+fi

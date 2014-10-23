@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# jsitesbackup -- Find Joomla instances and backup them
+# Supports all Joomla versions
+# Requires jbackupstore script
+#
+# Backups older than 5 days are automatically cleaned
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+
+# define variables
+version=3.2
+startdir="/home"
+storepath=/backups/sites
+jbackupstore=/usr/local/sbin/jbackupstore
+logfile=/usr/local/sbin/sitesbackup.log
+
+if [ ! -d "${storepath}" ]; then
+	echo "Backup directory does not exist!"
+	exit 1
+fi
+
+for dir in `find ${startdir} -maxdepth 4 -type d -name "public_html"`; do
+	if [ -f ${dir}/configuration.php ]; then
+		# possible joomla found
+		cd ${dir}
+		echo "`date` Joomla found in ${dir}" >> ${logfile}
+		# Run backup script
+		${jbackupstore}
+	fi
+done
+
+# cleanup backups older than 5 days
+cd ${storepath}
+find . -mtime +4 -exec rm {} \;
