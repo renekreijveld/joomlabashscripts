@@ -6,6 +6,11 @@
 # Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
 #
 # This program is free software; you may redistribute it and/or modify it.
+#
+# Version history
+# 3.0 Initial version
+# 3.1 Code rewrite
+# 3.2 Modification of all echo -e statements and remove backticks
 
 # Define general variables
 version=3.1
@@ -38,70 +43,72 @@ fi
 do_joomla10()
 {
 	# Grab information from Joomla 1.0 configuration.
-	sitename=`grep '$mosConfig_sitename =' ${joomlaconf}| cut -d \' -f 2 | sed 's/ /_/g'`
-	sitenameclean=`grep '$mosConfig_sitename =' ${joomlaconf}| cut -d \' -f 2`
-	database=`grep '$mosConfig_db =' ${joomlaconf} | cut -d \' -f 2`
-	dbuser=`grep '$mosConfig_user =' ${joomlaconf} | cut -d \' -f 2`
-	password=`grep '$mosConfig_password =' ${joomlaconf} | cut -d \' -f 2`
-	host=`grep '$mosConfig_host =' ${joomlaconf} | cut -d \' -f 2`
-	prefix=`grep '$mosConfig_dbprefix =' ${joomlaconf} | cut -d \' -f 2`
-	versr=`grep '$RELEASE' ${versionf1017} | cut -d \' -f 2`
-	versd=`grep '$DEV_LEVEL' ${versionf1017} | cut -d \' -f 2`
-	verss=`grep '$DEV_STATUS' ${versionf1017} | cut -d \' -f 2`
+	sitename=$(grep '$mosConfig_sitename =' ${joomlaconf}| cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$mosConfig_sitename =' ${joomlaconf}| cut -d \' -f 2)
+	database=$(grep '$mosConfig_db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$mosConfig_user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$mosConfig_password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$mosConfig_host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$mosConfig_dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep '$RELEASE' ${versionf1017} | cut -d \' -f 2)
+	versd=$(grep '$DEV_LEVEL' ${versionf1017} | cut -d \' -f 2)
+	verss=$(grep '$DEV_STATUS' ${versionf1017} | cut -d \' -f 2)
 }
 
 # Grab Joomla 1.5 or 1.6 information
 do_joomla1516()
 {
 	# Grab information from Joomla 1.5 configuration.
-	sitename=`grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g'`
-	sitenameclean=`grep '$sitename =' ${joomlaconf} | cut -d \' -f 2`
-	database=`grep '$db =' ${joomlaconf} | cut -d \' -f 2`
-	dbuser=`grep '$user =' ${joomlaconf} | cut -d \' -f 2`
-	password=`grep '$password =' ${joomlaconf} | cut -d \' -f 2`
-	host=`grep '$host =' ${joomlaconf} | cut -d \' -f 2`
-	prefix=`grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2`
-	versr=`grep '$RELEASE' ${versionf1516} | cut -d \' -f 2`
-	versd=`grep '$DEV_LEVEL' ${versionf1516} | cut -d \' -f 2`
-	verss=`grep '$DEV_STATUS' ${versionf1516} | cut -d \' -f 2`
+	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep '$RELEASE' ${versionf1516} | cut -d \' -f 2)
+	versd=$(grep '$DEV_LEVEL' ${versionf1516} | cut -d \' -f 2)
+	verss=$(grep '$DEV_STATUS' ${versionf1516} | cut -d \' -f 2)
 }
 
 # Grab Joomla 1.7 information
 do_joomla17()
 {
 	# Grab information from Joomla 1.5 configuration.
-	sitename=`grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g'`
-	sitenameclean=`grep '$sitename =' ${joomlaconf} | cut -d \' -f 2`
-	database=`grep '$db =' ${joomlaconf} | cut -d \' -f 2`
-	dbuser=`grep '$user =' ${joomlaconf} | cut -d \' -f 2`
-	password=`grep '$password =' ${joomlaconf} | cut -d \' -f 2`
-	host=`grep '$host =' ${joomlaconf} | cut -d \' -f 2`
-	prefix=`grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2`
-	versr=`grep '$RELEASE' ${versionf1017} | cut -d \' -f 2`
-	versd=`grep '$DEV_LEVEL' ${versionf1017} | cut -d \' -f 2`
-	verss=`grep '$DEV_STATUS' ${versionf1017} | cut -d \' -f 2`
+	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep '$RELEASE' ${versionf1017} | cut -d \' -f 2)
+	versd=$(grep '$DEV_LEVEL' ${versionf1017} | cut -d \' -f 2)
+	verss=$(grep '$DEV_STATUS' ${versionf1017} | cut -d \' -f 2)
 }
 
 # Grab Joomla 2.5 and up information
 do_joomla25plus()
 {
 	# Grab information from Joomla 2.5/3.0/3.1/3.2 configuration.
-	sitename=`grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g'`
-	sitenameclean=`grep '$sitename =' ${joomlaconf} | cut -d \' -f 2`
-	database=`grep '$db =' ${joomlaconf} | cut -d \' -f 2`
-	dbuser=`grep '$user =' ${joomlaconf} | cut -d \' -f 2`
-	password=`grep '$password =' ${joomlaconf} | cut -d \' -f 2`
-	host=`grep '$host =' ${joomlaconf} | cut -d \' -f 2`
-	prefix=`grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2`
-	versr=`grep '$RELEASE' ${versionf25plus} | cut -d \' -f 2`
-	versd=`grep '$DEV_LEVEL' ${versionf25plus} | cut -d \' -f 2`
-	verss=`grep '$DEV_STATUS' ${versionf25plus} | cut -d \' -f 2`
+	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep '$RELEASE' ${versionf25plus} | cut -d \' -f 2)
+	versd=$(grep '$DEV_LEVEL' ${versionf25plus} | cut -d \' -f 2)
+	verss=$(grep '$DEV_STATUS' ${versionf25plus} | cut -d \' -f 2)
 }
 
 # Check if configuration.php exists.
 if [ ! -e ${joomlaconf} ]
 	then
-	echo -e "File configuration.php not found. Are you at the root of the site?\n"
+	echo ""
+	echo "File configuration.php not found. Are you at the root of the site?"
+	echo ""
 	exit 1
 fi
 
@@ -109,7 +116,7 @@ fi
 if [ -e ${versionf1017} ]
 	then
 	# Possible Joomla 1.0 or 1.7
-	release=`grep '$RELEASE' ${versionf1017} | cut -d \' -f 2`
+	release=$(grep '$RELEASE' ${versionf1017} | cut -d \' -f 2)
 	if echo "${release}" | grep -q "1.0" ; then
 		do_joomla10
 	fi
@@ -121,7 +128,7 @@ fi
 if [ -e ${versionf1516} ]
 	then
 	# Possible Joomla 1.5 or 1.6
-	release=`grep '$RELEASE' ${versionf1516} | cut -d \' -f 2`
+	release=$(grep '$RELEASE' ${versionf1516} | cut -d \' -f 2)
 	if echo "${release}" | grep -q "1.5" ; then
 		do_joomla1516
 	fi
@@ -133,7 +140,7 @@ fi
 # Testing for Joomla version 2.5 and up
 if [ -f ${versionf25plus} ]
 	then
-	release=`grep '$RELEASE' ${versionf25plus} | cut -d \' -f 2`
+	release=$(grep '$RELEASE' ${versionf25plus} | cut -d \' -f 2)
 	if echo "${release}" | grep -q "2.5" ; then
 		do_joomla25plus
 	fi

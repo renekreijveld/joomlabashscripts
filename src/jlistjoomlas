@@ -8,25 +8,38 @@
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+#
+# Version history
+# 3.0 Initial version
+# 3.1 Code rewrite
+# 3.2 Added CSV option
+# 3.3 Modification of all echo -e statements
 
-# Define variables
-version=3.2
-startdir="/home"
-mypath=$( cd $(dirname ${0}) ; pwd -P )
-myname=`basename ${0}`
+# define variables
+version=3.3
+mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
+startdir=/home
 
 # display usage information
 usage() {
-	echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
-	echo -e "Usage: ${myname} [-s] [-c] [-h]\n"
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-s] [-c] [-h]"
+	echo ""
 	echo "-s Short. Only display path and Joomla version."
 	echo "-c CSV. Output values in CSV format."
-	echo -e "-h Help. Display this info.\n"
-	echo -e "Example usage:\n"
+	echo "-h Help. Display this info."
+	echo ""
+	echo "Example usage:"
+	echo ""
 	echo "${myname}"
-	echo -e "Outputs detailed information about Joomla websites found on this server.\n"
+	echo "Outputs detailed information about Joomla websites found on this server."
+	echo ""
 	echo "${myname} -c > joomlasites.csv"
-	echo -e "Outputs detailed information about Joomla websites in CSV format and writes result to the file joomlasites.csv.\n"
+	echo "Outputs detailed information about Joomla websites in CSV format and writes result to the file joomlasites.csv."
+	echo ""
 	exit 0
 }
 
@@ -39,13 +52,15 @@ do
 		s) short="yes";;
 		c) csv="yes";;
 		h) usage;;
-		\?) usage;;		
+		\?) usage;;
 	esac
 done
 
 if [ "${csv}" == "no" ]; then
 	if [ "${short}" == "no" ]; then
-		echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+		echo ""
+		echo "${myname} version ${version}, written by Rene Kreijveld."
+		echo ""
 	fi
 fi
 
@@ -53,21 +68,21 @@ if [ "${csv}" == "yes" ]; then
 	echo "\"map\",\"name\",\"version\",\"database\",\"dbuser\",\"password\",\"host\",\"prefix\""
 fi
 
-for dir in `find ${startdir} -maxdepth 4 -type d -name "public_html"`
+for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html")
 do
 	if [ -f ${dir}/configuration.php ]; then
 		# possible joomla found
-		cd ${dir}		
+		cd ${dir}
 		if [ "${csv}" == "no" ]; then
 			if [ "${short}" == "no" ]; then
 				echo Possible Joomla found in ${dir}
 			fi
 		fi
 
-		# Get Joomla information
+		# get Joomla information
 		. ${mypath}/jfunctions
 
-		# Output information
+		# output information
 		if [ "${csv}" == "yes" ]; then
 			echo "\"${dir}\",\"${sitename}\",\"${versr}.${versd} ${verss}\",\"${database}\",\"${dbuser}\",\"${password}\",\"${host}\",\"${prefix}\""
 		else
@@ -79,10 +94,12 @@ do
 				echo "DB User     : ${dbuser}"
 				echo "DB Password : ${password}"
 				echo "DB Host     : ${host}"
-				echo -e "DB Prefix   : ${prefix}\n"
+				echo "DB Prefix   : ${prefix}"
+				echo ""
 			else
 				echo "Joomla found in ${dir}"
-				echo -e "Version: ${versr}.${versd} ${verss}\n"
+				echo "Version: ${versr}.${versd} ${verss}"
+				echo ""
 			fi
 		fi
 	fi

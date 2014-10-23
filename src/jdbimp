@@ -8,27 +8,34 @@
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+#
+# Version history
+# 3.0 Initial version
+# 3.1 Code rewrite
+# 3.2 Modification of all echo -e statements
 
-# General variables
-mypath=$( cd $(dirname ${0}) ; pwd -P )
-myname=`basename ${0}`
+# general variables
+mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
 
-# Include general functions
+# include general functions
 . ${mypath}/jfunctions
 
-# Version
-version=3.1
+# version
+version=3.2
 
-echo -e "\n${myname} version ${version}, written by Rene Kreijveld.\n"
+echo ""
+echo "${myname} version ${version}, written by Rene Kreijveld."
+echo ""
 echo "This is a Joomla! ${versr}.${versd} site. Starting database import..."
 
-# Check if database dump exists.
+# check if database dump exists.
 if [ ! -e ${database}.sql ]; then
 	echo "Database dump ${database}.sql not found!"
 	exit 1
 fi
 
-# Import the database from a .sql file
+# import the database from a .sql file
 if mysql --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} < ${database}.sql; then
 	echo "${database}.sql imported."
 	exit 0

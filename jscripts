@@ -26,7 +26,7 @@ buildDistro() {
 	version=`grep -m1 'version=' ${jscript} | cut -d "=" -f 2`
 	echo "Processing ${jscript} version ${version}"
 	tar czf distro/${jscript}.${version}.tgz ${jscript}
-	cp distro/${jscript}.${version}.tgz distro/${jscript}.tgz 
+	cp distro/${jscript}.${version}.tgz distro/${jscript}.tgz
 	echo "${jscript}:${version}" >> versions.txt
 	mv versions.txt distro
 }

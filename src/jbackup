@@ -9,25 +9,31 @@
 #
 # Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
 #
-
-# General variables
-version=3.1
+# Version history
+# 3.0 Initial version
+# 3.1 Added usage
+# 3.2 Code rewrite and remove -e option in echos
 
 # Determine path of script
-mypath=$( cd $(dirname $0) ; pwd -P )
+mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
+
+# Version
+version=3.2
 
 # display usage information
 usage() {
-	echo "jbackup version ${version}, written by Rene Kreijveld."
-	echo " "
-	echo "Usage: jbackup [-z] [-h]"
-	echo " "
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-z] [-h]"
+	echo ""
 	echo "Default action is .tgz backup."
 	echo "-z Zip. Backup to a zipfile instead of a tgzfile."
 	echo "-h Help. Display this info."
-	echo " "
-	echo "Run jbackup at the root of your website, where the configuration.php is."
-	echo " "
+	echo ""
+	echo "Run ${myname} at the root of your website, where the configuration.php is."
+	echo ""
 	exit 0
 }
 
@@ -43,13 +49,15 @@ while getopts zth opt; do
 	esac
 done
 
-# Include general functions
+# include general functions
 . ${mypath}/jfunctions
 
-echo -e "\njbackup verion ${version}, written by Rene Kreijveld.\n"
+echo ""
+echo "${myname} version ${version}, written by Rene Kreijveld."
+echo ""
 echo "This is a Joomla! ${versr}.${versd} site. Starting backup..."
 
-# Dump the database to a .sql file
+# dump the database to a .sql file
 echo "Creating database dump..."
 if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql; then
 	echo "${database}.sql created."
@@ -58,31 +66,23 @@ else
 	exit 1
 fi
 
+# check if htaccess is present
 if [ -e .htaccess ]; then
 	htaccess=".htaccess"
 else
 	htaccess=""
 fi
 
-# Create the backupfile
-if echo "${zip}" | grep -q "no" ; then
+# create the backup
+if [ "${zip}" == "no" ]; then
 	tar czf ${sitename}.tgz ${htaccess} *
-fi
-
-if echo "${zip}" | grep -q "yes" ; then
-	zip -q -r ${sitename}.zip ${htaccess} *
-fi
-
-# Cleanup datebase dump
-rm ${database}.sql
-
-# End
-if echo "${zip}" | grep -q "no" ; then
 	echo "Your backup is ready in ${sitename}.tgz:"
 	ls -l ${sitename}.tgz
-fi
-
-if echo "${zip}" | grep -q "yes" ; then
+else
+	zip -q -r ${sitename}.zip ${htaccess} *
 	echo "Your backup is ready in ${sitename}.zip:"
 	ls -l ${sitename}.zip
 fi
+
+# cleanup datebase dump
+rm ${database}.sql

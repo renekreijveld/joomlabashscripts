@@ -9,10 +9,16 @@
 # Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
 #
 # This program is free software; you may redistribute it and/or modify it.
+#
+# Version history
+# 3.0 Initial version
+# 3.1 Code rewrite
+# 3.2 Modification of all echo -e statements
+# 3.3 Modification of backquotes usage
 
 # define variables
-version=3.2
-startdir="/home"
+version=3.3
+startdir=/home
 storepath=/backups/sites
 jbackupstore=/usr/local/sbin/jbackupstore
 logfile=/usr/local/sbin/sitesbackup.log
@@ -22,11 +28,11 @@ if [ ! -d "${storepath}" ]; then
 	exit 1
 fi
 
-for dir in `find ${startdir} -maxdepth 4 -type d -name "public_html"`; do
+for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html"); do
 	if [ -f ${dir}/configuration.php ]; then
 		# possible joomla found
 		cd ${dir}
-		echo "`date` Joomla found in ${dir}" >> ${logfile}
+		echo "$(date) Joomla found in ${dir}" >> ${logfile}
 		# Run backup script
 		${jbackupstore}
 	fi

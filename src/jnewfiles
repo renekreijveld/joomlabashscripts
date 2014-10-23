@@ -22,7 +22,7 @@
 
 # Setup variables
 version=3.2
-server="`hostname`"
+server="$(hostname)"
 receivers="email@renekreijveld.nl,r.kreijveld@gakijken.nl"
 tmpdir=/tmp
 emailmsg="${tmpdir}/new_changed.txt"
@@ -33,7 +33,7 @@ duration=120
 # Extra subject prefix for the email message
 subject_prefix="Joomla file monitoring agent - server ${server} - `date` "
 # Retrieve the name of this script
-script_fullname=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)/`basename "${BASH_SOURCE[0]}"`
+script_fullname=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/$(basename "${BASH_SOURCE[0]}")
 # Send email if no new files were found? Enter value "yes" or "no"
 sendnotfound=no
 

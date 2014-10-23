@@ -8,19 +8,27 @@
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+#
+# Version history
+# 3.0 Initial version
+# 3.1 Code rewrite
+# 3.2 Modification of all echo -e statements
 
-# General variables
-mypath=$( cd $(dirname ${0}) ; pwd -P )
-myname=`basename ${0}`
+# general variables
+mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
 
-# Include general functions
+# include general functions
 . ${mypath}/jfunctions
 
-# Version
-version=3.1
-echo -e "\n${myname} verion ${version}, written by Rene Kreijveld.\n"
+# version
+version=3.2
 
-# Output information
+echo ""
+echo "${myname} verion ${version}, written by Rene Kreijveld."
+echo ""
+
+# output information
 echo "This Joomla! website:"
 echo "Sitename    :" $sitenameclean
 echo "Version     :" $versr.$versd $verss
@@ -30,3 +38,4 @@ echo "DB Password :" $password
 echo "DB Host     :" $host
 echo "DB Prefix   :" $prefix
 echo "Path        :" `pwd`
+echo ""
