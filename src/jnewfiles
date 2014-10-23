@@ -23,7 +23,7 @@
 # Setup variables
 version=3.2
 server="$(hostname)"
-receivers="email@renekreijveld.nl,r.kreijveld@gakijken.nl"
+receivers="you@yourdomain.com"
 tmpdir=/tmp
 emailmsg="${tmpdir}/new_changed.txt"
 changes="${tmpdir}/new_changes.txt"
