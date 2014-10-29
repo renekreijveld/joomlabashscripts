@@ -13,9 +13,10 @@
 #                    All these improvements by Christophe Avonture
 # Update 21-10-2014: code rewrite and added auto update feature
 # Update 24-10-2014: added -n (no e-mail) option
+# Update 29-10-2014: correction in the instructions
 
 # Save this file as /usr/local/sbin/newfiles
-# Modify the EMAIL variable to reflect your email address.
+# Modify the receivers variable to reflect your email address.
 # Modify the homedir and tmpdir variables to your needs.
 #
 # Then add to your local cron to run every 3 hours:
@@ -23,13 +24,13 @@
 
 # Setup variables
 myname=$(basename ${0})
-version=3.3
+version=3.4
 server="$(hostname)"
 receivers="you@yourdomain.com"
 tmpdir=/tmp
+homedir=/home
 emailmsg="${tmpdir}/new_changed.txt"
 changes="${tmpdir}/new_changes.txt"
-homedir=/home
 # 120 minutes -> find any files that have been changed during the last 2 hours
 duration=120
 # Extra subject prefix for the email message
