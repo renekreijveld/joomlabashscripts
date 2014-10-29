@@ -6,13 +6,14 @@
 #
 # This program is free software; you may redistribute it and/or modify it.
 #
-# Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
 #
 # Version history
 # 3.0 Initial version
+# 3.1 Typo correction
 
 # Define general variables
-version=3.0
+version=3.1
 now=$(date +"%Y%m%d-%H%M%S")
 storepath=/backups/sites
 logfile=/usr/local/sbin/sitesbackup.log

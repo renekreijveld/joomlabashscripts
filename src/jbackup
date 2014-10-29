@@ -7,19 +7,20 @@
 #
 # This program is free software; you may redistribute it and/or modify it.
 #
-# Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
 #
 # Version history
 # 3.0 Initial version
 # 3.1 Added usage
 # 3.2 Code rewrite and remove -e option in echos
+# 3.3 Typo correction
 
 # Determine path of script
 mypath=$(cd $(dirname ${0}); pwd -P)
 myname=$(basename ${0})
 
 # Version
-version=3.2
+version=3.3
 
 # display usage information
 usage() {

@@ -8,13 +8,14 @@
 #
 # This program is free software; you may redistribute it and/or modify it.
 #
-# Warning! This script needs the file joomlafunctions. This has to be installed in the same directory as this script.
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
 #
 # Version history
 # 3.0 Initial version
 # 3.1 Added -a option
 # 3.2 Added version history
 # 3.3 Added -c option to just check the database
+# 3.4 Typo correction
 
 # General variables
 mypath=$(cd $(dirname ${0}); pwd -P)
@@ -22,7 +23,7 @@ myname=$(basename ${0})
 startdir=/home
 
 # Version
-version=3.3
+version=3.4
 
 # display usage information
 usage() {

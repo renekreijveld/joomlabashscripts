@@ -1,10 +1,10 @@
 dbbackup:3.0
-jbackup:3.2
-jbackupstore:3.0
+jbackup:3.3
+jbackupstore:3.1
 jdbdump:3.2
 jdbimp:3.2
-jdbrepair:3.3
-jdbsession:3.3
+jdbrepair:3.4
+jdbsession:3.4
 jfunctions:3.1
 jinfo:3.2
 jlistjoomlas:3.3
