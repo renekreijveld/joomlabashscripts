@@ -72,13 +72,15 @@ do
 done
 
 # Find all changed .php files last <duration> minutes, skip files with "cache" and  "php-mail" in filename
-find ${homedir} -type f -mmin -${duration} -name "*.php" -exec ls -l {} \; | grep -v cache | grep -v php-mail | grep -v "error.php" > ${changes}
+find ${homedir} -type f -cmin -${duration} -name "*.php" -exec ls -l {} \; | grep -v cache | grep -v php-mail | grep -v "error.php" > ${changes}
 # Find all changed .html files last <duration> minutes
-find ${homedir} -type f -mmin -${duration} -name "*.html" -exec ls -l {} \; | grep -v cache | grep -v ju_cached | grep -v "/stats/" >> ${changes}
+find ${homedir} -type f -cmin -${duration} -name "*.html" -exec ls -l {} \; | grep -v cache | grep -v ju_cached | grep -v "/stats/" >> ${changes}
 # Find all changed .js files last <duration> minutes
-find ${homedir} -type f -mmin -${duration} -name "*.js" -exec ls -l {} \; | grep -v cache >> ${changes}
+find ${homedir} -type f -cmin -${duration} -name "*.js" -exec ls -l {} \; | grep -v cache >> ${changes}
+# Find all changed .htaccess files last <duration> minutes
+find ${homedir} -type f -cmin -${duration} -name ".htaccess" -exec ls -l {} \; >> ${changes}
 # Find all changed .php files last <duration> minutes in the temp directory
-find ${tmpdir} -type f -mmin -${duration} -name "*.php" -exec ls -l {} \; >> ${changes}
+find ${tmpdir} -type f -cmin -${duration} -name "*.php" -exec ls -l {} \; >> ${changes}
 # Only if changes are found, send email
 if [ -s ${changes} ]; then
 	echo "${subject_prefix} New and changed files last ${duration} minuntes server ${server}" > ${emailmsg}
