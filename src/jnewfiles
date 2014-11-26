@@ -20,7 +20,7 @@
 # Modify the receivers variable to reflect your email address.
 # Modify the homedir and tmpdir variables to your needs.
 #
-# Then add to your local cron to run every 3 hours:
+# Then add to your local cron to run every 2 hours:
 # 5 0,2,4,6,8,10,12,14,16,18,20,22 * * * /usr/local/sbin/jnewfiles
 
 # Setup variables
