@@ -8,7 +8,7 @@ jdbsession:3.4
 jfunctions:3.1
 jinfo:3.2
 jlistjoomlas:3.3
-jnewfiles:3.4
+jnewfiles:3.5
 jrestore:3.2
 jsitesbackup:3.3
 jscripts:4.0
