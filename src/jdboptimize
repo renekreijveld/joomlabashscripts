@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# jdboptimize -- Optimize the database of a Joomla website.
+#
+# This scripts supports Joomla versions 1.0 - 3.3
+#
+# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+#
+# Version history
+# 3.0 Initial version
+
+# General variables
+mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
+startdir=/home
+
+# version
+version=3.0
+
+# display usage information
+usage() {
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-c] [-a] [-h]"
+	echo ""
+	echo "-c Check. Do not optimize the database, just check the tables."
+	echo "-a All. Repair databases for all Joomla websites found."
+	echo "-h Help. Display this info."
+	echo ""
+	echo "If used without the -a option, ${myname} should be run in the root of your Joomla website."
+	echo ""
+	exit 0
+}
+
+databaseRepair() {
+	# get Joomla info
+	. ${mypath}/jfunctions
+	optimize="--optimize"
+	otext="Optimize"
+	if [ "${check}" == "yes" ]; then
+		optimize=""
+		otext="Checking"
+	fi
+	echo "${otext} database for ${sitename}:"
+	echo ""
+	mysqlcheck --user=${dbuser} --password=${password} ${repair} ${database}
+}
+
+# process the arguments
+all="no"
+check="no"
+while getopts ach opt
+do
+	case "${opt}" in
+		a) all="yes";;
+		c) check="yes";;
+		h) usage;;
+		\?) usage;;
+	esac
+done
+
+echo ""
+echo "${myname} version ${version}, written by Rene Kreijveld."
+echo ""
+
+# if option all the find all joomlas and repair, otherwise repair only current
+if [ "${all}" == "yes" ]; then
+	for dir in `find ${startdir} -maxdepth 4 -type d -name "public_html"`; do
+		if [ -f ${dir}/configuration.php ]; then
+			# possible joomla found
+			echo "Joomla website found at ${dir}"
+			cd ${dir}
+			databaseRepair;
+		fi
+	done
+else
+	databaseRepair;
+fi
