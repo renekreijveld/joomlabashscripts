@@ -15,7 +15,7 @@
 # 3.1 Code rewrite
 # 3.2 Modification of all echo -e statements
 # 3.3 Modification of backquotes usage
-# 3.4 Integrated functionality of jbackupstore into this script
+# 3.4 Integrated functionality of jbackupstore into this script. Added option to specify number of backups to keep as an argument.
 
 # define variables
 version=3.4
@@ -29,10 +29,43 @@ now=$(date +"%Y%m%d-%H%M%S")
 # Determine path of script
 mypath=$(cd $(dirname ${0}); pwd -P)
 
-if [ ! -d "${storepath}" ]; then
-	echo "Backup directory does not exist!"
-	exit 1
-fi
+#if [ ! -d "${storepath}" ]; then
+#	echo "Backup directory does not exist!"
+#	exit 1
+#fi
+
+# display usage information
+usage() {
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-b <backups>] [-h]"
+	echo ""
+	echo "-b Number of backups to keep, '-b 2' means keep 2 backups. Default is 4."
+	echo "-h Help. Display this info."
+	echo ""
+	exit 0
+}
+
+# process the arguments
+while getopts ":b::h" opt; do
+	case "${opt}" in
+		b)
+			savebackups=${OPTARG}
+			;;
+		h)
+			usage
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
+	esac
+done
 
 for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html"); do
 	if [ -f ${dir}/configuration.php ]; then
