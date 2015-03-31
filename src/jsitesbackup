@@ -29,10 +29,10 @@ now=$(date +"%Y%m%d-%H%M%S")
 # Determine path of script
 mypath=$(cd $(dirname ${0}); pwd -P)
 
-#if [ ! -d "${storepath}" ]; then
-#	echo "Backup directory does not exist!"
-#	exit 1
-#fi
+if [ ! -d "${storepath}" ]; then
+	echo "Backup directory does not exist!"
+	exit 1
+fi
 
 # display usage information
 usage() {
@@ -86,6 +86,6 @@ for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html"); do
 	fi
 done
 
-# cleanup backups older than 5 days
+# cleanup backups older than savebackups days
 cd ${storepath}
 find . -mtime +${savebackups} -exec rm {} \;

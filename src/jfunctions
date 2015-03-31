@@ -13,7 +13,7 @@
 # 3.2 Modification of all echo -e statements and remove backticks
 
 # Define general variables
-version=3.1
+version=3.2
 joomlaconf=./configuration.php
 versionf1017=./includes/version.php
 versionf1516=./libraries/joomla/version.php
@@ -154,6 +154,9 @@ if [ -f ${versionf25plus} ]
 		do_joomla25plus
 	fi
 	if echo "${release}" | grep -q "3.3" ; then
+		do_joomla25plus
+	fi
+	if echo "${release}" | grep -q "3.4" ; then
 		do_joomla25plus
 	fi
 fi

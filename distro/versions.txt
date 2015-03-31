@@ -5,7 +5,7 @@ jdbdump:3.2
 jdbimp:3.2
 jdbrepair:3.4
 jdbsession:3.4
-jfunctions:3.1
+jfunctions:3.2
 jinfo:3.2
 jlistjoomlas:3.3
 jnewfiles:3.6
