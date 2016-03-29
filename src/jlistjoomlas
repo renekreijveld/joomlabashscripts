@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # jlistjoomlas -- Find Joomla instances on your (DirectAdmin based) server.
-# Supports Joomla versions 1.0 - 3.3
+# Supports Joomla versions 1.0 - 3.4
 #
 # Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
 #
@@ -14,9 +14,10 @@
 # 3.1 Code rewrite
 # 3.2 Added CSV option
 # 3.3 Modification of all echo -e statements
+# 3.4 Added release version option
 
 # define variables
-version=3.3
+version=3.4
 mypath=$(cd $(dirname ${0}); pwd -P)
 myname=$(basename ${0})
 startdir=/home
@@ -26,9 +27,10 @@ usage() {
 	echo ""
 	echo "${myname} version ${version}, written by Rene Kreijveld."
 	echo ""
-	echo "Usage: ${myname} [-s] [-c] [-h]"
+	echo "Usage: ${myname} [-s] [-c] [-h] [-r release]"
 	echo ""
 	echo "-s Short. Only display path and Joomla version."
+	echo "-r Release version. Only display information about Joomla sites with given release version, eg 1.5, 2.5, 3.4"
 	echo "-c CSV. Output values in CSV format."
 	echo "-h Help. Display this info."
 	echo ""
@@ -36,6 +38,9 @@ usage() {
 	echo ""
 	echo "${myname}"
 	echo "Outputs detailed information about Joomla websites found on this server."
+	echo ""
+	echo "${myname} -s -r 3.3"
+	echo "Outputs short information about Joomla 3.3 websites found on this server."
 	echo ""
 	echo "${myname} -c > joomlasites.csv"
 	echo "Outputs detailed information about Joomla websites in CSV format and writes result to the file joomlasites.csv."
@@ -46,10 +51,12 @@ usage() {
 # process the arguments
 short="no"
 csv="no"
-while getopts sch opt
+releaseversion=
+while getopts schr: opt
 do
 	case "${opt}" in
 		s) short="yes";;
+		r) releaseversion=$OPTARG;;
 		c) csv="yes";;
 		h) usage;;
 		\?) usage;;
@@ -81,6 +88,13 @@ do
 
 		# get Joomla information
 		. ${mypath}/jfunctions
+
+		if [ ! -z "${releaseversion}" ] && [ "${releaseversion}" != "${versr}" ]; then
+			if [ "${csv}" == "no" ] && [ "${short}" == "no" ]; then
+				echo Skipping ${versr} is not ${releaseversion}
+			fi
+			continue;
+		fi
 
 		# output information
 		if [ "${csv}" == "yes" ]; then
