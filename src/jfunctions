@@ -1,12 +1,7 @@
 #!/bin/sh
 
-<<<<<<< HEAD
-# jfunctions - general bash functions for use in jooma bash scripts
-# Supports Joomla versions 1.0 - 3.x
-=======
 # jfunctions - general bash functions for use in Joomla bash scripts
 # Supports Joomla versions 1.0 - 3.4
->>>>>>> origin/master
 #
 # Copyright 2014 Rene Kreijveld - r.kreijveld@dsd.nu
 #
@@ -96,7 +91,6 @@ do_joomla17()
 # Grab Joomla 2.5 and up information
 do_joomla25plus()
 {
-<<<<<<< HEAD
 	# Grab information from Joomla 2.5/3.x configuration.
 	sitename=`grep '$sitename =' ${JOOMLACONF} | cut -d \' -f 2 | sed 's/ /_/g'`
 	sitenameclean=`grep '$sitename =' ${JOOMLACONF} | cut -d \' -f 2`
@@ -108,19 +102,6 @@ do_joomla25plus()
 	versr=`grep 'RELEASE =' ${VERSIONF25PLUS} | cut -d \' -f 2`
 	versd=`grep 'DEV_LEVEL =' ${VERSIONF25PLUS} | cut -d \' -f 2`
 	verss=`grep 'DEV_STATUS =' ${VERSIONF25PLUS} | cut -d \' -f 2`
-=======
-	# Grab information from Joomla 2.5/3.0/3.1/3.2/3.3/3.4 configuration.
-	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
-	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
-	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
-	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
-	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
-	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
-	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
-	versr=$(grep '$RELEASE' ${versionf25plus} | cut -d \' -f 2)
-	versd=$(grep '$DEV_LEVEL' ${versionf25plus} | cut -d \' -f 2)
-	verss=$(grep '$DEV_STATUS' ${versionf25plus} | cut -d \' -f 2)
->>>>>>> origin/master
 }
 
 # Check if configuration.php exists.
@@ -179,11 +160,7 @@ if [ -f ${versionf25plus} ]
 	if echo "${release}" | grep -q "3.4" ; then
 		do_joomla25plus
 	fi
-<<<<<<< HEAD
 	if echo "${release}" | grep -q "3.5" ; then
 		do_joomla25plus
 	fi
 fi
-=======
-fi
->>>>>>> origin/master
