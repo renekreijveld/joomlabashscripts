@@ -1,10 +1,8 @@
 #!/bin/sh
 
 # jsitesbackup -- Find Joomla instances and backup them
-# Supports all Joomla versions
-# Requires jbackupstore script
 #
-# Backups older than 5 days are automatically cleaned
+# Backups older than configurable number of days days are automatically cleaned
 #
 # Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
 #
@@ -16,12 +14,13 @@
 # 3.2 Modification of all echo -e statements
 # 3.3 Modification of backquotes usage
 # 3.4 Integrated functionality of jbackupstore into this script. Added option to specify number of backups to keep as an argument.
+# 3.5 Modified to use Akeeba Backup CLI
+# 3.6 Remove Akeeba Backup CLI option
 
 # define variables
-version=3.4
+version=3.6
 startdir=/home
 storepath=/backups/sites
-jbackupstore=/usr/local/sbin/jbackupstore
 logfile=/usr/local/sbin/sitesbackup.log
 savebackups=4
 now=$(date +"%Y%m%d-%H%M%S")
@@ -30,8 +29,8 @@ now=$(date +"%Y%m%d-%H%M%S")
 mypath=$(cd $(dirname ${0}); pwd -P)
 
 if [ ! -d "${storepath}" ]; then
-	echo "Backup directory does not exist!"
-	exit 1
+		echo "Backup directory does not exist!"
+		exit 1
 fi
 
 # display usage information
@@ -88,4 +87,4 @@ done
 
 # cleanup backups older than savebackups days
 cd ${storepath}
-find . -mtime +${savebackups} -exec rm {} \;
+find . -type f -mtime +${savebackups} -exec rm {} \;
