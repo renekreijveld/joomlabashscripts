@@ -23,18 +23,20 @@
 #
 # Then add to your local cron to run every 2 hours:
 # 5 0,2,4,6,8,10,12,14,16,18,20,22 * * * /usr/local/sbin/jnewfiles
+# To run cron every hour:
+# 5 * * * * /usr/local/sbin/jnewfiles
 
 # Setup variables
 myname=$(basename ${0})
-version=3.6
+version=3.7
 server="$(hostname)"
 receivers="you@yourdomain.com"
 tmpdir=/tmp
 homedir=/home
 emailmsg="${tmpdir}/new_changed.txt"
 changes="${tmpdir}/new_changes.txt"
-# 120 minutes -> find any files that have been changed during the last 2 hours
-duration=120
+# 60 minutes -> find any files that have been changed during the last hour
+duration=60
 # Extra subject prefix for the email message
 subject_prefix="Joomla file monitoring agent - server ${server} - `date` "
 # Retrieve the name of this script
@@ -76,7 +78,7 @@ done
 # Find all changed .php files last <duration> minutes, skip files with "cache" and  "php-mail" in filename
 find ${homedir} -type f -cmin -${duration} -name "*.php" -exec ls -l {} \; | grep -v cache | grep -v php-mail | grep -v "error.php" > ${changes}
 # Find all changed .html files last <duration> minutes
-find ${homedir} -type f -cmin -${duration} -name "*.html" -exec ls -l {} \; | grep -v cache | grep -v ju_cached | grep -v "/stats/" >> ${changes}
+find ${homedir} -type f -cmin -${duration} -name "*.html" -exec ls -l {} \; | grep -v cache | grep -v ju_cached | grep -v "/stats/" | grep -v "raxo_thumbs" >> ${changes}
 # Find all changed .js files last <duration> minutes
 find ${homedir} -type f -cmin -${duration} -name "*.js" -exec ls -l {} \; | grep -v cache >> ${changes}
 # Find all changed .htaccess files last <duration> minutes
@@ -85,7 +87,8 @@ find ${homedir} -type f -cmin -${duration} -name ".htaccess" -exec ls -l {} \; >
 find ${tmpdir} -type f -cmin -${duration} -name "*.php" -exec ls -l {} \; >> ${changes}
 # Only if changes are found, send email
 if [ -s ${changes} ]; then
-	echo "${subject_prefix} New and changed files last ${duration} minuntes server ${server}" > ${emailmsg}
+	echo "${subject_prefix}" > ${emailmsg}
+	echo "New and changed files last ${duration} minuntes server ${server}" >> ${emailmsg}
 	echo "================================================================================" >> ${emailmsg}
 	cat ${changes} >> ${emailmsg}
 	echo "================================================================================" >> ${emailmsg}

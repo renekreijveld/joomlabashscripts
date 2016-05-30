@@ -5,10 +5,11 @@ jdbdump:3.2
 jdbimp:3.2
 jdbrepair:3.4
 jdbsession:3.4
-jfunctions:3.3
+jfunctions:3.4
 jinfo:3.2
-jlistjoomlas:3.3
-jnewfiles:3.6
+jlistakeeba:1.0
+jlistjoomlas:3.4
+jnewfiles:3.7
 jrestore:3.2
 jsitesbackup:3.6
 jscripts:4.0
