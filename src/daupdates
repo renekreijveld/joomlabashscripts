@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Find mail client
+if [ -s /bin/mail ]; then
+	mailprog=/bin/mail
+elif [ -s /usr/bin/mail ]; then
+	mailprog=/usr/bin/mail
+fi
+
+cd /usr/local/directadmin/custombuild
+./build update
+./build versions | grep available > /tmp/da_updates.txt

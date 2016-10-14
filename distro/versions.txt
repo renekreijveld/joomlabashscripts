@@ -1,4 +1,5 @@
 dbbackup:3.0
+jakeebabackup:1.2
 jbackup:3.3
 jbackupstore:3.1
 jdbdump:3.2
