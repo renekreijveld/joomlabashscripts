@@ -73,6 +73,18 @@ while getopts m:h opt; do
 	esac
 done
 
+if [ "${movefiles}" == "yes" ]
+then
+	# Test if folder for moving exists
+	if [ ! -d "${dest}" ]
+	then
+		echo "Folder for moving files ${dest} does not exist!"
+		exit 1
+	fi
+fi
+
+
+
 echo Option provided to move unused files to: ${dest}
 echo "Creating database dump..."
 
