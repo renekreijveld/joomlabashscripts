@@ -1,0 +1,130 @@
+#!/bin/sh
+
+# jfindfiles -- Find used and unused content files in your Joomla website
+#
+# This scripts supports Joomla versions 2.5 - 3.x
+#
+# Copyright 2014 - 2016 Rene Kreijveld - email@renekreijveld.nl
+#
+# This program is free software; you may redistribute it and/or modify it.
+#
+# Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
+#
+# Version history
+# 1.0 Initial version
+# 2.1 Added option to discover files with %20 in the Joomla database
+# 2.2 Added test if jfunctions exists
+# 2.3 Added movedir for found files
+# todo: keep directory structure in place in move destination
+
+# general variables
+mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
+
+# include general functions
+if [ ! -e ${mypath}/jfunctions ]
+then
+	echo ""
+	echo "Cannot continue: script jfunctions not found."
+	echo ""
+	exit 1
+else
+	. ${mypath}/jfunctions
+fi
+
+# version
+version=2.3
+
+# Setup Vvariables
+start=./images
+curdir=`pwd`
+
+# display usage information
+usage() {
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-m movedir]"
+	echo ""
+	echo "-m Move found files to supplied folder"
+	echo "-h Show this help"
+	echo ""
+	exit 0
+}
+
+# process command-line arguments
+while getopts m:h opt; do
+	case "${opt}" in
+		m)
+			movefiles="yes"
+			dest=${OPTARG}
+			;;
+		h)
+			usage
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
+	esac
+done
+
+echo Option provided to move unused files to: ${dest}
+echo "Creating database dump..."
+
+# Dump the database to a .sql file
+if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} ${database} > ${database}.sql
+then
+	echo "Database dump ${database}.sql created."
+else
+	echo "Error creating database dump."
+	exit 1
+fi
+
+dbdump=${curdir}/${database}.sql
+usedfile=${curdir}/${sitename}-used.txt
+notusedfile=${curdir}/${sitename}-notused.txt
+echo "The following files were mentioned in your Joomla database:" > ${usedfile}
+echo "The following files were NOT mentioned in your Joomla database:" > ${notusedfile}
+echo "Checking for used and unused files..."
+
+# Move into the images/stories directory
+cd ${start}
+# Find all files and check if they are mentioned in the database dump
+for file in `find . -type f -print | cut -c 3- | sed 's/ /#}/g'`
+do
+	file2=`echo $file | sed 's/#}/ /g'`
+	file3=`echo $file | sed 's/#}/%20/g'`
+	result1=`grep -c "$file2" ${dbdump}`
+	result2=`grep -c "$file3" ${dbdump}`
+	if [[ $result1 = 0 ]]; then
+		if [[ $result2 = 0 ]]; then
+			echo ${file2} >> ${notusedfile}
+			if [ "${movefiles}" == "yes" ]
+			then
+				echo Moving file ${file2} to ${dest}
+				mv $file2 ../${dest}/
+			fi
+		else
+			echo $file2 >> ${usedfile}
+		fi
+	else
+		echo $file2 >> ${usedfile}
+	fi
+done
+
+# Move back to the root of the website
+cd ${curdir}
+
+# Cleanup database dump
+rm ${dbdump}
+
+# Report findings
+echo "Files checking done."
+echo "Check the following text-files for results:"
+echo "${usedfile}"
+echo "${notusedfile}"
