@@ -106,7 +106,6 @@ do
 			echo ${file2} >> ${notusedfile}
 			if [ "${movefiles}" == "yes" ]
 			then
-				echo Moving file ${file2} to ${dest}
 				mv $file2 ../${dest}/
 			fi
 		else
