@@ -33,84 +33,87 @@ mypath=$(cd $(dirname ${0}); pwd -P)
 # Test if /dummy map exists for safe deletes, if not exists, create it
 if [ ! -d "/dummy" ]
 then
-        mkdir /dummy
+	mkdir /dummy
 fi
 
 # Test if folder for backup storage exists
 if [ ! -d "${storepath}" ]
 then
-        echo "Backup directory ${storepath} does not exist!"
-        exit 1
+	echo "Backup directory ${storepath} does not exist!"
+	exit 1
 fi
 
 # display usage information
 usage() {
-        echo ""
-        echo "${myname} version ${version}, written by Rene Kreijveld."
-        echo ""
-        echo "Usage: ${myname} [-b <backups>] [-h]"
-        echo ""
-        echo "-b Number of backups to keep, '-b 2' means keep 2 backups. Default is 4."
-        echo "-h Help. Display this info."
-        echo ""
-        exit 0
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-b <backups>] [-z] [-h]"
+	echo ""
+	echo "-b Number of backups to keep, '-b 2' means keep 2 backups. Default is 4."
+	echo "-z Use zip for backups"
+	echo "-h Help. Display this info."
+	echo ""
+	exit 0
 }
 
+# Default no zipfile
+zip="no"
+
 # process the arguments
-while getopts b:h opt
+while getopts b:z:h opt
 do
-        case "${opt}" in
-                b)
-                        savebackups=${OPTARG}
-                        ;;
-                h)
-                        usage
-                        ;;
-                \?)
-                        echo "Invalid option: -$OPTARG" >&2
-                        exit 1
-                        ;;
-                :)
-                        echo "Option -$OPTARG requires an argument." >&2
-                        exit 1
-                        ;;
-        esac
+	case "${opt}" in
+		b)	savebackups=${OPTARG};;
+		z)	zip="yes";;
+		h)	usage;;
+		\?) echo "Invalid option: -$OPTARG" >&2
+			usage
+			exit 1;;
+		:)	echo "Option -$OPTARG requires an argument." >&2
+			exit 1;;
+	esac
 done
 
 for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html")
 do
-        if [ -f ${dir}/configuration.php ]
-        then
-                # possible joomla found
-                cd ${dir}
-                echo "$(date) Joomla found in ${dir}" >> ${logfile}
-                # gather joomla information
-                if [ ! -e ${mypath}/jfunctions ]
-                then
-                        echo ""
-                        echo "Cannot continue: script jfunctions not found."
-                        echo ""
-                        exit 1
-                else
-                        . ${mypath}/jfunctions
-                fi
-                # create backup
-                echo "`date` Start backup ${sitename}" >> ${logfile}
-                # dump the database to a .sql file
-                mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql
-                # backup site
-                tar --exclude 'cache/*' -czf ${storepath}/${sitename}.${now}.tgz .htaccess *
-                # cleanup datebase dump
-                rm ${database}.sql
-                echo "`date` End backup ${sitename}" >> ${logfile}
-        fi
+	if [ -f ${dir}/configuration.php ]
+	then
+		# possible joomla found
+		cd ${dir}
+		echo "$(date) Joomla found in ${dir}" >> ${logfile}
+		# gather joomla information
+		if [ ! -e ${mypath}/jfunctions ]
+		then
+			echo ""
+			echo "Cannot continue: script jfunctions not found."
+			echo ""
+			exit 1
+		else
+			. ${mypath}/jfunctions
+		fi
+		# create backup
+		echo "`date` Start backup ${sitename}" >> ${logfile}
+		# dump the database to a .sql file
+		mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql
+		# backup site
+		if [ "${zip}" == "no" ]
+		then
+			tar -czf ${storepath}/${sitename}.${now}.tgz .htaccess *
+		else
+			zip -q -r ${storepath}/${sitename}.${now}.zip .htaccess *
+		fi
+		# cleanup datebase dump
+		rm ${database}.sql
+		echo "`date` End backup ${sitename}" >> ${logfile}
+	fi
 done
 
 # cleanup backups older than savebackups days
 # test if /dummy map exists for safe deletes, if not exists, create it
 if [ ! -d "/dummy" ]
 then
-        mkdir /dummy
+	mkdir /dummy
 fi
 cd /dummy
 find ${storepath} -type f -mtime +${savebackups} -delete
