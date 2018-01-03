@@ -38,4 +38,5 @@ echo "DB Password :" $password
 echo "DB Host     :" $host
 echo "DB Prefix   :" $prefix
 echo "Path        :" `pwd`
+echo "Log path    :" $logpath
 echo ""

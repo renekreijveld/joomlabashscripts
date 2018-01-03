@@ -98,7 +98,7 @@ do
 
 		# output information
 		if [ "${csv}" == "yes" ]; then
-			echo "\"${dir}\",\"${sitename}\",\"${versr}.${versd} ${verss}\",\"${database}\",\"${dbuser}\",\"${password}\",\"${host}\",\"${prefix}\""
+			echo "\"${dir}\",\"${sitename}\",\"${versr}.${versd} ${verss}\",\"${database}\",\"${dbuser}\",\"${password}\",\"${host}\",\"${prefix}\",\"${logpath}\""
 		else
 			if [ "${short}" == "no" ]; then
 				echo "Joomla information found:"
@@ -109,6 +109,7 @@ do
 				echo "DB Password : ${password}"
 				echo "DB Host     : ${host}"
 				echo "DB Prefix   : ${prefix}"
+				echo "Log path    : ${logpath}"
 				echo ""
 			else
 				echo "Joomla found in ${dir}"
