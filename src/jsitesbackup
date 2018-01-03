@@ -4,7 +4,7 @@
 #
 # Backups older than configurable number of days days are automatically cleaned
 #
-# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+# Copyright 2014 - 2016 Rene Kreijveld - r.kreijveld@dsd.nu
 #
 # This program is free software; you may redistribute it and/or modify it.
 #
@@ -16,9 +16,11 @@
 # 3.4 Integrated functionality of jbackupstore into this script. Added option to specify number of backups to keep as an argument.
 # 3.5 Modified to use Akeeba Backup CLI
 # 3.6 Remove Akeeba Backup CLI option
+# 3.7 Added test if jfunctions exists
+# 3.8 Safer method of deleting old backups
 
 # define variables
-version=3.6
+version=3.8
 startdir=/home
 storepath=/backups/sites
 logfile=/usr/local/sbin/sitesbackup.log
@@ -28,63 +30,87 @@ now=$(date +"%Y%m%d-%H%M%S")
 # Determine path of script
 mypath=$(cd $(dirname ${0}); pwd -P)
 
-if [ ! -d "${storepath}" ]; then
-		echo "Backup directory does not exist!"
-		exit 1
+# Test if /dummy map exists for safe deletes, if not exists, create it
+if [ ! -d "/dummy" ]
+then
+        mkdir /dummy
+fi
+
+# Test if folder for backup storage exists
+if [ ! -d "${storepath}" ]
+then
+        echo "Backup directory ${storepath} does not exist!"
+        exit 1
 fi
 
 # display usage information
 usage() {
-	echo ""
-	echo "${myname} version ${version}, written by Rene Kreijveld."
-	echo ""
-	echo "Usage: ${myname} [-b <backups>] [-h]"
-	echo ""
-	echo "-b Number of backups to keep, '-b 2' means keep 2 backups. Default is 4."
-	echo "-h Help. Display this info."
-	echo ""
-	exit 0
+        echo ""
+        echo "${myname} version ${version}, written by Rene Kreijveld."
+        echo ""
+        echo "Usage: ${myname} [-b <backups>] [-h]"
+        echo ""
+        echo "-b Number of backups to keep, '-b 2' means keep 2 backups. Default is 4."
+        echo "-h Help. Display this info."
+        echo ""
+        exit 0
 }
 
 # process the arguments
-while getopts ":b::h" opt; do
-	case "${opt}" in
-		b)
-			savebackups=${OPTARG}
-			;;
-		h)
-			usage
-			;;
-		\?)
-			echo "Invalid option: -$OPTARG" >&2
-			exit 1
-			;;
-		:)
-			echo "Option -$OPTARG requires an argument." >&2
-			exit 1
-			;;
-	esac
+while getopts b:h opt
+do
+        case "${opt}" in
+                b)
+                        savebackups=${OPTARG}
+                        ;;
+                h)
+                        usage
+                        ;;
+                \?)
+                        echo "Invalid option: -$OPTARG" >&2
+                        exit 1
+                        ;;
+                :)
+                        echo "Option -$OPTARG requires an argument." >&2
+                        exit 1
+                        ;;
+        esac
 done
 
-for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html"); do
-	if [ -f ${dir}/configuration.php ]; then
-		# possible joomla found
-		cd ${dir}
-		echo "$(date) Joomla found in ${dir}" >> ${logfile}
-		# gather joomla information
-		. ${mypath}/jfunctions
-		# create backup
-		echo "`date` Start backup ${sitename}" >> ${logfile}
-		# dump the database to a .sql file
-		mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql
-		# backup site
-		tar --exclude 'cache/*' -czf ${storepath}/${sitename}.${now}.tgz .htaccess *
-		# cleanup datebase dump
-		rm ${database}.sql
-		echo "`date` End backup ${sitename}" >> ${logfile}
-	fi
+for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html")
+do
+        if [ -f ${dir}/configuration.php ]
+        then
+                # possible joomla found
+                cd ${dir}
+                echo "$(date) Joomla found in ${dir}" >> ${logfile}
+                # gather joomla information
+                if [ ! -e ${mypath}/jfunctions ]
+                then
+                        echo ""
+                        echo "Cannot continue: script jfunctions not found."
+                        echo ""
+                        exit 1
+                else
+                        . ${mypath}/jfunctions
+                fi
+                # create backup
+                echo "`date` Start backup ${sitename}" >> ${logfile}
+                # dump the database to a .sql file
+                mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql
+                # backup site
+                tar --exclude 'cache/*' -czf ${storepath}/${sitename}.${now}.tgz .htaccess *
+                # cleanup datebase dump
+                rm ${database}.sql
+                echo "`date` End backup ${sitename}" >> ${logfile}
+        fi
 done
 
 # cleanup backups older than savebackups days
-cd ${storepath}
-find . -type f -mtime +${savebackups} -exec rm {} \;
+# test if /dummy map exists for safe deletes, if not exists, create it
+if [ ! -d "/dummy" ]
+then
+        mkdir /dummy
+fi
+cd /dummy
+find ${storepath} -type f -mtime +${savebackups} -delete
