@@ -1,23 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 
-# jlistjoomlas -- Find Joomla instances on your (DirectAdmin based) server.
-# Supports Joomla versions 1.0 - 3.4
+# jlistjoomlas -- Find Joomla instances on your Linux server.
+# Supports Joomla versions 1.0 - 4.x
 #
-# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
-#
+# Copyright 2014 - 2022 Rene Kreijveld - email@renekreijveld.nl
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
 #
 # Version history
-# 3.0 Initial version
-# 3.1 Code rewrite
-# 3.2 Added CSV option
-# 3.3 Modification of all echo -e statements
-# 3.4 Added release version option
+# 1.0 Initial version
+# 1.1 Code rewrite
+# 1.2 Added CSV option
+# 1.3 Modification of all echo -e statements
+# 1.4 Added release version option
+# 1.5 Added test if jfunctions exists
+# 1.6 Start folder set to /home, this is default for a Runcloud server
 
 # define variables
-version=3.4
+version=1.6
 mypath=$(cd $(dirname ${0}); pwd -P)
 myname=$(basename ${0})
 startdir=/home
@@ -63,57 +64,73 @@ do
 	esac
 done
 
-if [ "${csv}" == "no" ]; then
-	if [ "${short}" == "no" ]; then
+if [ "${csv}" == "no" ]
+then
+	if [ "${short}" == "no" ]
+	then
 		echo ""
 		echo "${myname} version ${version}, written by Rene Kreijveld."
 		echo ""
 	fi
 fi
 
-if [ "${csv}" == "yes" ]; then
+if [ "${csv}" == "yes" ]
+then
 	echo "\"map\",\"name\",\"version\",\"database\",\"dbuser\",\"password\",\"host\",\"prefix\""
 fi
 
-for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html")
+for dir in $(find ${startdir} -maxdepth 4 -type d)
 do
-	if [ -f ${dir}/configuration.php ]; then
+	if [ -f ${dir}/configuration.php ]
+	then
 		# possible joomla found
 		cd ${dir}
-		if [ "${csv}" == "no" ]; then
-			if [ "${short}" == "no" ]; then
+		if [ "${csv}" == "no" ]
+		then
+			if [ "${short}" == "no" ]
+			then
 				echo Possible Joomla found in ${dir}
 			fi
 		fi
 
 		# get Joomla information
-		. ${mypath}/jfunctions
-
-		if [ ! -z "${releaseversion}" ] && [ "${releaseversion}" != "${versr}" ]; then
-			if [ "${csv}" == "no" ] && [ "${short}" == "no" ]; then
-				echo Skipping ${versr} is not ${releaseversion}
+		if [ ! -e ${mypath}/jfunctions ]
+		then
+			echo ""
+			echo "Cannot continue: script jfunctions not found."
+			echo ""
+			exit 1
+		else
+			. ${mypath}/jfunctions
+		fi
+		if [ ! -z "${releaseversion}" ] && [ "${releaseversion}" != "${jversion}" ]
+		then
+			if [ "${csv}" == "no" ] && [ "${short}" == "no" ]
+			then
+				echo Skipping, found version is ${jversion} and not ${releaseversion}.
 			fi
 			continue;
 		fi
 
 		# output information
-		if [ "${csv}" == "yes" ]; then
-			echo "\"${dir}\",\"${sitename}\",\"${versr}.${versd} ${verss}\",\"${database}\",\"${dbuser}\",\"${password}\",\"${host}\",\"${prefix}\",\"${logpath}\""
+		if [ "${csv}" == "yes" ]
+		then
+			echo "\"${dir}\",\"${sitename}\",\"${jversion}\",\"${database}\",\"${dbuser}\",\"${password}\",\"${host}\",\"${prefix}\""
 		else
-			if [ "${short}" == "no" ]; then
+			if [ "${short}" == "no" ]
+			then
 				echo "Joomla information found:"
 				echo "Sitename    : ${sitename}"
-				echo "Version     : ${versr}.${versd} ${verss}"
+				echo "Version     : ${jversion}"
 				echo "DB Name     : ${database}"
 				echo "DB User     : ${dbuser}"
 				echo "DB Password : ${password}"
 				echo "DB Host     : ${host}"
 				echo "DB Prefix   : ${prefix}"
-				echo "Log path    : ${logpath}"
 				echo ""
 			else
 				echo "Joomla found in ${dir}"
-				echo "Version: ${versr}.${versd} ${verss}"
+				echo "Version: ${jversion}"
 				echo ""
 			fi
 		fi

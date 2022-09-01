@@ -1,39 +1,102 @@
-#!/bin/sh
+#!/bin/bash
 
 # jdbdump -- Dump a Joomla database to sql file.
 #
-# This scripts supports Joomla versions 1.0 - 3.3
+# This scripts supports Joomla versions 2.5 - 4.x
 #
-# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
-#
+# Copyright 2014 - 2022 Rene Kreijveld - email@renekreijveld.nl
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
 #
 # Version history
-# 3.0 Initial version
-# 3.1 Code rewrite
-# 3.2 Modification of all echo -e statements
+# 1.0 Initial version
+# 1.1 Code rewrite
+# 1.2 Modification of all echo -e statements
+# 1.3 Added test if jfunctions exists
+# 1.4 Added compress option
 
 # general variables
 mypath=$(cd $(dirname ${0}); pwd -P)
 myname=$(basename ${0})
 
 # include general functions
-. ${mypath}/jfunctions
+if [ ! -e ${mypath}/jfunctions ]
+then
+	echo ""
+	echo "Cannot continue: script jfunctions not found."
+	echo ""
+	exit 1
+else
+	# gather joomla information
+	. ${mypath}/jfunctions
+fi
 
 # version
-version=3.2
+version=1.4
+
+# display usage information
+usage() {
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+	echo "Usage: ${myname} [-d] [-c] [-h]"
+	echo ""
+	echo "-d Add a date-time-stamp to the database dump filename."
+	echo "-c Compress the database dump with gzip."
+	echo "-h Help. Display this info."
+	echo ""
+	exit 0
+}
+
+# process the arguments
+compress="no"
+while getopts dch opt; do
+	case "${opt}" in
+		d)
+			showdate="yes"
+			;;
+		c)
+			compress="yes"
+			;;
+		h)
+			usage
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
+	esac
+done
+
+if [ "${showdate}" == "yes" ]
+then
+	now=$(date +".%Y%m%d-%H%M%S")
+else
+	now=""
+fi
 
 echo ""
 echo "${myname} version ${version}, written by Rene Kreijveld."
 echo ""
-echo "This is a Joomla! ${versr}.${versd} site. Starting database dump..."
+echo "This is a Joomla! ${jversion} site. Starting database dump..."
 
 # dump the database to a .sql file
-if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql; then
-	echo "${database}.sql created."
-	ls -l ${database}.sql
+if mysqldump --skip-opt --extended-insert=FALSE --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} ${database} > ${database}${now}.sql
+then
+	if [ "${compress}" == "yes" ]
+	then
+		gzip ${database}${now}.sql
+		echo "${database}${now}.sql.gz created (compressed with gzip)."
+		ls -l ${database}${now}.sql.gz
+	else
+		echo "${database}${now}.sql created."
+		ls -l ${database}${now}.sql
+	fi
 	exit 0
 else
 	echo "Error creating database dump."

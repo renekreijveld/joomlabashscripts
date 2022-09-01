@@ -1,51 +1,134 @@
-#!/bin/sh
+#!/bin/bash
 
-# jfunctions - general bash functions for use in Joomla bash scripts
-# Supports Joomla versions 2.5 - 3.4
+# jfunctions - general bash functions for use in jooma bash scripts
+# Supports all Joomla versions
 #
-# Copyright 2014 Rene Kreijveld - r.kreijveld@dsd.nu
+# Copyright 2012 - 2022 Rene Kreijveld - email@renekreijveld.nl
 #
 # This program is free software; you may redistribute it and/or modify it.
-#
-# Version history
-# 3.0 Initial version
-# 3.1 Code rewrite
-# 3.2 Modification of all echo -e statements and remove backticks
-# 3.3 Update to support Joomla 3.5
-# 3.4 Dropped support for Joomla versions lower than 2.5
 
 # Define general variables
-version=3.4
+version=3.5
+joomlaconf=./configuration.php
+versionf1017=./includes/version.php
+versionf1516=./libraries/joomla/version.php
+versionf2537=./libraries/cms/version/version.php
+versionf38plus=./libraries/src/Version.php
+version4=./includes/app.php
 
-# Check if configuration.php exists.
-if [ ! -e ./configuration.php ]
-	then
-	echo ""
+# Grab site info for Joomla version 1.0
+get_joomla10_info()
+{
+	sitename=$(grep '$mosConfig_sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$mosConfig_sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$mosConfig_db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$mosConfig_user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$mosConfig_password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$mosConfig_host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$mosConfig_dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep '$RELEASE =' ${versionfile} | cut -d \' -f 2)
+	versd=$(grep '$DEV_LEVEL =' ${versionfile} | cut -d \' -f 2)
+	verss=$(grep '$DEV_STATUS =' ${versionfile} | cut -d \' -f 2)
+}
+
+# Grab site info for Joomla version 1.5 - 1.7
+get_joomla1517_info()
+{
+	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep '$RELEASE' ${versionfile} | cut -d \' -f 2)
+	versd=$(grep '$DEV_LEVEL' ${versionfile} | cut -d \' -f 2)
+	verss=$(grep '$DEV_STATUS' ${versionfile} | cut -d \' -f 2)
+}
+
+# Grab site info for Joomla version 2.5 and up
+get_joomla25up_info()
+{
+	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep 'RELEASE =' ${versionfile} | cut -d \' -f 2)
+	versd=$(grep 'DEV_LEVEL =' ${versionfile} | cut -d \' -f 2)
+	verss=$(grep 'DEV_STATUS =' ${versionfile} | cut -d \' -f 2)
+}
+
+# Grab site info for Joomla version 2.5 and up
+get_joomla4up_info()
+{
+	sitename=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2 | sed 's/ /_/g')
+	sitenameclean=$(grep '$sitename =' ${joomlaconf} | cut -d \' -f 2)
+	database=$(grep '$db =' ${joomlaconf} | cut -d \' -f 2)
+	dbuser=$(grep '$user =' ${joomlaconf} | cut -d \' -f 2)
+	password=$(grep '$password =' ${joomlaconf} | cut -d \' -f 2)
+	host=$(grep '$host =' ${joomlaconf} | cut -d \' -f 2)
+	prefix=$(grep '$dbprefix =' ${joomlaconf} | cut -d \' -f 2)
+	versr=$(grep 'MAJOR_VERSION =' ${versionfile} | cut -d " " -f 4 | cut -d ";" -f 1)
+	versd=$(grep 'MINOR_VERSION =' ${versionfile} | cut -d " " -f 4 | cut -d ";" -f 1)
+	verss=$(grep 'PATCH_VERSION =' ${versionfile} | cut -d " " -f 4 | cut -d ";" -f 1)
+}
+
+# Check if configuration.php exists
+if [ ! -e ${joomlaconf} ]; then
 	echo "File configuration.php not found. Are you at the root of the site?"
-	echo ""
 	exit 1
 fi
 
-# Find MySQL Socket
-if [ -S /var/lib/mysql/mysql.sock ]; then
-	mysock=/var/lib/mysql/mysql.sock
-elif [ -S /var/run/mysqld/mysqld.sock ]; then
-	mysock=/var/run/mysqld/mysqld.sock
-elif [ -S /Applications/MAMP/tmp/mysql/mysql.sock ]; then
-	mysock=/Applications/MAMP/tmp/mysql/mysql.sock
-elif [ -S /tmp/mysql.sock ]; then
-	mysock=/tmp/mysql.sock
+# Test for Joomla 1.0 or 1.7
+if [ -e ${versionf1017} ]
+then
+	# Joomla 1.0 and 1.7 use the same version file, so need to check for 1.0 or 1.7
+	release=`grep '$RELEASE' ${versionf1017} | cut -d \' -f 2`
+	if echo "${release}" | grep -q "1.0"
+	then
+		versionfile=${versionf1017}
+		get_joomla10_info
+	fi
+	if echo "${release}" | grep -q "1.7"
+	then
+		versionfile=${versionf1017}
+		get_joomla1517_info
+	fi
 fi
 
-# Grab information from Joomla 2.5/3.x configuration.
-sitename=$(grep '$sitename =' ./configuration.php | cut -d \' -f 2 | sed 's/ /_/g')
-sitenameclean=$(grep '$sitename =' ./configuration.php | cut -d \' -f 2)
-database=$(grep '$db =' ./configuration.php | cut -d \' -f 2)
-dbuser=$(grep '$user =' ./configuration.php | cut -d \' -f 2)
-password=$(grep '$password =' ./configuration.php | cut -d \' -f 2)
-host=$(grep '$host =' ./configuration.php | cut -d \' -f 2)
-logpath=$(grep '$log_path =' ./configuration.php | cut -d \' -f 2)
-prefix=$(grep '$dbprefix =' ./configuration.php | cut -d \' -f 2)
-versr=$(grep 'RELEASE =' ./libraries/cms/version/version.php | cut -d \' -f 2)
-versd=$(grep 'DEV_LEVEL =' ./libraries/cms/version/version.php | cut -d \' -f 2)
-verss=$(grep 'DEV_STATUS =' ./libraries/cms/version/version.php | cut -d \' -f 2)
+# Test for Joomla 1.5 or 1.6
+if [ -e ${versionf1516} ]
+then
+	versionfile=${versionf1516}
+	get_joomla1517_info
+fi
+
+# Test for Joomla 2.5 - 3.7
+if [ -f ${versionf2537} ]
+then
+	versionfile=${versionf2537}
+	get_joomla25up_info
+fi
+
+# Test for Joomla 3.8 and up
+if [ -f ${versionf38plus} ]
+then
+	if [ -e ${version4} ]
+	then
+		versionfile=${versionf38plus}
+		get_joomla4up_info
+	else
+		versionfile=${versionf38plus}
+		get_joomla25up_info
+	fi
+fi
+# Set jversion
+if [ -e ${version4} ]
+then
+	jversion=$versr.$versd.$verss
+else
+	jversion=$versr.$versd
+fi

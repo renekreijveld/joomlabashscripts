@@ -1,26 +1,27 @@
-#!/bin/sh
+#!/bin/bash
 
 # jbackup -- Create a full backup (including database) of a Joomla website to .tgz file.
-# Supports Joomla 1.0 - 3.3
+# Supports Joomla versions 2.5 - 4.x
 #
-# Copyright 2014 Rene Kreijveld - r.kreijveld@gakijken.nl
+# Copyright 2014 -2021 Rene Kreijveld - email@renekreijveld.nl
 #
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Warning! This script needs the file jfunctions. This has to be installed in the same directory as this script.
 #
 # Version history
-# 3.0 Initial version
-# 3.1 Added usage
-# 3.2 Code rewrite and remove -e option in echos
-# 3.3 Typo correction
+# 1.0 Initial version
+# 1.1 Added usage
+# 1.2 Code rewrite and remove -e option in echos
+# 1.3 Typo correction
+# 1.4 Added test if jfunctions exists
 
 # Determine path of script
 mypath=$(cd $(dirname ${0}); pwd -P)
 myname=$(basename ${0})
 
 # Version
-version=3.3
+version=1.4
 
 # display usage information
 usage() {
@@ -38,10 +39,9 @@ usage() {
 	exit 0
 }
 
-# Default no zipfile
-zip="no"
 
 # process the arguments
+zip="no"
 while getopts zth opt; do
 	case "${opt}" in
 		z) zip="yes";;
@@ -51,16 +51,25 @@ while getopts zth opt; do
 done
 
 # include general functions
-. ${mypath}/jfunctions
+if [ ! -e ${mypath}/jfunctions ]
+then
+	echo ""
+	echo "Cannot continue: script jfunctions not found."
+	echo ""
+	exit 1
+else
+	. ${mypath}/jfunctions
+fi
 
 echo ""
 echo "${myname} version ${version}, written by Rene Kreijveld."
 echo ""
-echo "This is a Joomla! ${versr}.${versd} site. Starting backup..."
+echo "This is a Joomla! ${jversion} site. Starting backup..."
 
 # dump the database to a .sql file
 echo "Creating database dump..."
-if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql; then
+if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} ${database} > ${database}.sql
+then
 	echo "${database}.sql created."
 else
 	echo "Error creating database dump."
@@ -68,14 +77,16 @@ else
 fi
 
 # check if htaccess is present
-if [ -e .htaccess ]; then
+if [ -e .htaccess ]
+then
 	htaccess=".htaccess"
 else
 	htaccess=""
 fi
 
 # create the backup
-if [ "${zip}" == "no" ]; then
+if [ "${zip}" == "no" ]
+then
 	tar czf ${sitename}.tgz ${htaccess} *
 	echo "Your backup is ready in ${sitename}.tgz:"
 	ls -l ${sitename}.tgz
@@ -85,5 +96,5 @@ else
 	ls -l ${sitename}.zip
 fi
 
-# cleanup datebase dump
+# cleanup the datebase dump
 rm ${database}.sql
