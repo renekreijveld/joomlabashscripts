@@ -1,46 +1,42 @@
-#!/bin/sh
+#!/bin/bash
 
-# jsitesbackup -- Find Joomla instances and backup them
+# jsitesbackup -- Create a full backup (including database) of all Joomla websites.
+# This script initially tries to backup the site with Akeeba Backup.
+# If Akeeba Backup is not found, a .tgz backup will be created of the website
 #
-# Backups older than configurable number of days days are automatically cleaned
+# Supports Joomla versions 2.5 - 4.x
 #
-# Copyright 2014 - 2016 Rene Kreijveld - r.kreijveld@dsd.nu
+# Copyright 2014 - 2022 Rene Kreijveld - email@renekreijveld.nl
 #
 # This program is free software; you may redistribute it and/or modify it.
 #
 # Version history
-# 3.0 Initial version
-# 3.1 Code rewrite
-# 3.2 Modification of all echo -e statements
-# 3.3 Modification of backquotes usage
-# 3.4 Integrated functionality of jbackupstore into this script. Added option to specify number of backups to keep as an argument.
-# 3.5 Modified to use Akeeba Backup CLI
-# 3.6 Remove Akeeba Backup CLI option
-# 3.7 Added test if jfunctions exists
-# 3.8 Safer method of deleting old backups
+# 1.0 Initial version
+# 1.1 Added option to test for .nobackup file
 
 # define variables
-version=3.8
+# version
+version=1.1
+# start folder where we start searching
 startdir=/home
+# where to store backup files
 storepath=/backups/sites
-logfile=/usr/local/sbin/sitesbackup.log
-savebackups=4
-now=$(date +"%Y%m%d-%H%M%S")
 
-# Determine path of script
+# determine path of script
 mypath=$(cd $(dirname ${0}); pwd -P)
+myname=$(basename ${0})
 
-# Test if /dummy map exists for safe deletes, if not exists, create it
-if [ ! -d "/dummy" ]
-then
-	mkdir /dummy
-fi
-
-# Test if folder for backup storage exists
+# check if folder for backup storage exists
 if [ ! -d "${storepath}" ]
 then
-	echo "Backup directory ${storepath} does not exist!"
+	echo "Backup directory does not exist!"
 	exit 1
+fi
+
+# create dummy folder if needed
+if [ ! -d /dummy ]
+then
+	mkdir /dummy
 fi
 
 # display usage information
@@ -48,72 +44,175 @@ usage() {
 	echo ""
 	echo "${myname} version ${version}, written by Rene Kreijveld."
 	echo ""
-	echo "Usage: ${myname} [-b <backups>] [-z] [-h]"
+	echo "Usage: ${myname} [-b <backups>] [-t] [-n] [-z] [-s] [-h]"
 	echo ""
+	echo "Default action is an Akeeba backup. If Akeeba Backup is not present a tar-gzip or zip backup will be created."
 	echo "-b Number of backups to keep, '-b 2' means keep 2 backups. Default is 4."
-	echo "-z Use zip for backups"
+	echo "-t Tgz. Do not create an Akeeba Backup but a tar-gzip or zip backup instead."
+	echo "-n No fallback. If Akeeba Backup is not present the script halts."
+	echo "-z Zip. Backup to a zipfile instead of a tar-gzip file."
+	echo "-s Silent. No progress messages will be shown."
 	echo "-h Help. Display this info."
 	echo ""
 	exit 0
 }
 
-# Default no zipfile
-zip="no"
-
 # process the arguments
-while getopts b:z:h opt
+savebackups=4
+tgz="no"
+fallback="yes"
+zip="no"
+extension=tgz
+silent="no"
+while getopts b:tnzsh opt
 do
-	case "${opt}" in
-		b)	savebackups=${OPTARG};;
-		z)	zip="yes";;
-		h)	usage;;
+  	case "${opt}" in
+		b)  savebackups=${OPTARG}
+			;;
+		t)  tgz="yes"
+			;;
+		n)  fallback="no"
+			;;
+		z)  zip="yes"
+			extension=zip
+			;;
+		s)  silent="yes"
+			;;
+		h)  usage
+			;;
 		\?) echo "Invalid option: -$OPTARG" >&2
-			usage
-			exit 1;;
-		:)	echo "Option -$OPTARG requires an argument." >&2
-			exit 1;;
+			exit 1
+			;;
+		:)  echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
 	esac
 done
 
-for dir in $(find ${startdir} -maxdepth 4 -type d -name "public_html")
+if [ "${silent}" == "no" ]
+then
+	echo ""
+	echo "${myname} version ${version}, written by Rene Kreijveld."
+	echo ""
+fi
+
+for dir in $(find ${startdir} -maxdepth 4 -type d)
 do
 	if [ -f ${dir}/configuration.php ]
 	then
 		# possible joomla found
+		if [ "${silent}" == "no" ]
+		then
+			echo "Possible Joomla found at ${dir}."
+		fi
+		# Check if file .nobackup exists, if it does, skip this folder
+		if [ -f ${dir}/.nobackup ]
+		then
+			if [ "${silent}" == "no" ]
+			then
+				echo "Nobackup flag found, skipping this Joomla website"
+			fi
+			continue
+		fi
 		cd ${dir}
-		echo "$(date) Joomla found in ${dir}" >> ${logfile}
-		# gather joomla information
 		if [ ! -e ${mypath}/jfunctions ]
 		then
 			echo ""
 			echo "Cannot continue: script jfunctions not found."
 			echo ""
 			exit 1
-		else
-			. ${mypath}/jfunctions
 		fi
+		# include general functions
+		. ${mypath}/jfunctions
 		# create backup
-		echo "`date` Start backup ${sitename}" >> ${logfile}
-		# dump the database to a .sql file
-		mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} --socket=${mysock} ${database} > ${database}.sql
-		# backup site
-		if [ "${zip}" == "no" ]
+
+		# create date/time stamp
+		now=$(date +"%Y%m%d.%H%M%S")
+
+		# check if an akeeba-backup must be tried first
+		if [ "${tgz}" == "no" ]
 		then
-			tar -czf ${storepath}/${sitename}.${now}.tgz .htaccess *
-		else
-			zip -q -r ${storepath}/${sitename}.${now}.zip .htaccess *
+			# check if akeeba-backup is present
+			if [ ! -e cli/akeeba-backup.php ]
+			then
+				# if there is no fallback then exit
+				if [ "${fallbackup}" == "no" ]
+				then
+					if [ "${silent}" == "no" ]
+					then
+						echo ""
+						echo "Error: PHP script akeeba-backup.php in cli map not found."
+						echo ""
+					fi
+					exit 1
+				else
+					tgz="yes"
+					extension=tgz
+					if [ "${zip}" == "yes" ]
+					then
+						extension=zip
+					fi
+				fi
+			else
+				extension=jpa
+			fi
 		fi
-		# cleanup datebase dump
-		rm ${database}.sql
-		echo "`date` End backup ${sitename}" >> ${logfile}
+
+		if [ "${tgz}" == "no" ]
+		then
+			# cleanup old .jpa and log files first
+			rm -f administrator/components/com_akeeba/backup/*.jpa
+			rm -f administrator/components/com_akeeba/backup/*.log
+			# create the backup
+			cd cli
+			/usr/bin/php akeeba-backup.php >/dev/null 2>&1
+			cd ..
+			# move backup to the root pf the website
+			mv administrator/components/com_akeeba/backup/*.jpa ${storepath}/${sitename}.${now}.${extension}
+		else
+			# dump the database to a .sql file
+			if [ "${silent}" == "no" ]
+			then
+				echo "Creating database dump."
+			fi
+			if mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --lock-tables --quick --set-charset --host=${host} --user=${dbuser} --password=${password} ${database} > ${database}.sql
+			then
+				if [ "${silent}" == "no" ]
+				then
+					echo "${database}.sql created."
+				fi
+				# check if the file htaccess is present
+				if [ -e .htaccess ]
+				then
+					htaccess=".htaccess"
+				else
+					htaccess=""
+				fi
+				# create the backup
+				if [ "${zip}" == "no" ]
+				then
+					tar --exclude='*.jpa' -czf ${sitename}.${now}.${extension} ${htaccess} *
+				else
+					zip -q -r ${sitename}.${now}.${extension} ${htaccess} *
+				fi
+				mv ${sitename}.${now}.${extension} ${storepath}
+				# cleanup the datebase dump
+				rm ${database}.sql
+			else
+				if [ "${silent}" == "no" ]
+				then
+					echo "Error creating database dump."
+				fi
+				exit 1
+			fi
+		fi
+		if [ "${silent}" == "no" ]
+		then
+			echo "Your backup is ready in ${storepath}/${sitename}.${now}.${extension}"
+		fi
 	fi
 done
 
 # cleanup backups older than savebackups days
-# test if /dummy map exists for safe deletes, if not exists, create it
-if [ ! -d "/dummy" ]
-then
-	mkdir /dummy
-fi
 cd /dummy
-find ${storepath} -type f -mtime +${savebackups} -delete
+find ${storepath}/* -type f -mtime +${savebackups} -delete
